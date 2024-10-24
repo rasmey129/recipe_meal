@@ -1,18 +1,26 @@
-// recipeDetails.dart
 import 'package:flutter/material.dart';
-import '/services/recipe_services.dart';  
+import 'services/recipe_services.dart';
 
-class DetailsScreen extends StatelessWidget {
+class RecipeDetailsScreen extends StatelessWidget {
   final String recipe;
+  final RecipeService recipeService = RecipeService();
 
-  DetailsScreen({required this.recipe});
-
-  final RecipeService _recipeService = RecipeService();  // Create an instance of the service
+  RecipeDetailsScreen({required this.recipe});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final recipeInfo = _recipeService.getRecipeDetails(recipe);
+    final recipeDetails = recipeService.getRecipeDetails(recipe);
+
+    if (recipeDetails == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(recipe),
+        ),
+        body: Center(
+          child: Text("No details found for this recipe."),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -20,59 +28,21 @@ class DetailsScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (recipeInfo != null && recipeInfo["image"] != null)
-                Image.network(
-                  recipeInfo["image"]!,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Text('Image failed to load.');
-                  },
-                ),
-              SizedBox(height: 16.0),
-              Text(
-                recipeInfo != null ? recipeInfo["description"] ?? "No details available." : "Recipe not found.",
-                style: TextStyle(fontSize: 16.0),
-              ),
-              SizedBox(height: 20.0),
-              if (recipeInfo != null && recipeInfo["ingredients"] != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Ingredients:",
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8.0),
-                    for (var ingredient in recipeInfo["ingredients"] as List<String>)
-                      Text("- $ingredient", style: TextStyle(fontSize: 16.0)),
-                  ],
-                ),
-              SizedBox(height: 20.0),
-              if (recipeInfo != null && recipeInfo["instructions"] != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Instructions:",
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8.0),
-                    for (var step in recipeInfo["instructions"] as List<String>)
-                      Text("• $step", style: TextStyle(fontSize: 16.0)),
-                  ],
-                ),
-            ],
-          ),
+        child: ListView(
+          children: [
+            Image.network(recipeDetails["image"] ?? '', height: 200, fit: BoxFit.cover),
+            SizedBox(height: 16),
+            Text(
+              recipeDetails["description"] ?? "No description available.",
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 16),
+            Text("Ingredients", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ...recipeDetails["ingredients"].map<Widget>((ingredient) => Text("• $ingredient")),
+            SizedBox(height: 16),
+            Text("Instructions", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ...recipeDetails["instructions"].map<Widget>((instruction) => Text("• $instruction")),
+          ],
         ),
       ),
     );
