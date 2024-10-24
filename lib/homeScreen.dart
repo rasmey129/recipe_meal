@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_meal/groceryList.dart';
 import 'recipeList.dart';
+import 'mealPlanner.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -59,24 +61,37 @@ class HomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () { },
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MealPlannerScreen(),
+                        ),
+                      ); },
                     icon: Icon(Icons.calendar_today),
                     label: Text('Meal Planner'),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                       backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), // Set text color to white
+                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
                     ),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => GroceryListScreen(),
+                        ),
+                      ); 
+                    },
                     icon: Icon(Icons.shopping_cart),
                     label: Text('Grocery List'),
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                       backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), // Set text color to white
+                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
                     ),
                   ),
                 ],
