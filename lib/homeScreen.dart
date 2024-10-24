@@ -54,14 +54,12 @@ class HomeScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                       backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), // Set text color to white
+                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
                     ),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      // Add action here for Meal Planner
-                    },
+                    onPressed: () { },
                     icon: Icon(Icons.calendar_today),
                     label: Text('Meal Planner'),
                     style: ElevatedButton.styleFrom(
@@ -72,9 +70,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      // Add action here for Grocery List
-                    },
+                    onPressed: () {},
                     icon: Icon(Icons.shopping_cart),
                     label: Text('Grocery List'),
                     style: ElevatedButton.styleFrom(
