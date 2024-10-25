@@ -22,7 +22,6 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
       ),
       body: Column(
         children: [
-          // Calendar Section
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -64,7 +63,6 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
             ),
           ),
           
-          // Meals for Selected Day
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(16),

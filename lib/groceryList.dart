@@ -25,7 +25,6 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
       ),
       body: Column(
         children: [
-          // Selected Recipes Section
           if (_selectedRecipes.isNotEmpty) ...[
             Container(
               padding: EdgeInsets.all(16),
@@ -58,7 +57,6 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
             Divider(height: 1),
           ],
 
-          // Grocery List
           Expanded(
             child: _groceryItems.isEmpty
                 ? Center(

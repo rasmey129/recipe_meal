@@ -13,8 +13,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
   Set<String> selectedTags = {};
   List<String> allRecipes = [];
   
-  // Define common recipe tags
-  final List<String> availableTags = [
+  final List<String> availableTags = [//for tags/filters
     'Breakfast',
     'Lunch',
     'Dinner',
@@ -33,16 +32,13 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
 
   List<String> getFilteredRecipes() {
     return allRecipes.where((recipe) {
-      // First check if the recipe matches the search query
-      bool matchesSearch = searchQuery.isEmpty ||
+     bool matchesSearch = searchQuery.isEmpty ||
           recipe.toLowerCase().contains(searchQuery.toLowerCase());
-
-      // If no tags are selected, only apply search filter
+      
       if (selectedTags.isEmpty) {
         return matchesSearch;
       }
 
-      // Check if recipe has all selected tags
       bool matchesTags = selectedTags.every((tag) =>
           recipeService.getRecipeTags(recipe)?.contains(tag) ?? false);
 
@@ -81,7 +77,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
             ),
           ),
           
-          // Tag Filters
+          //fiilters
           Container(
             height: 50,
             padding: EdgeInsets.symmetric(horizontal: 16),
@@ -114,7 +110,6 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
             ),
           ),
 
-          // Divider
           Divider(height: 1),
 
           // Recipe List

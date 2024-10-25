@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class RecipeService {
-  // Mock recipe data with details
   final Map<String, Map<String, dynamic>> _recipeData = {
     'Classic Pancakes': {
       'tags': ['Breakfast', 'Quick Meals', 'Vegetarian'],
@@ -107,34 +106,27 @@ class RecipeService {
     }
   };
 
-  // Get all recipe names
   List<String> getAllRecipes() {
     return _recipeData.keys.toList();
   }
 
-  // Get recipe image URL
   String? getRecipeImageUrl(String recipe) {
     return _recipeData[recipe]?['image'] as String?;
   }
 
-  // Get recipe tags
   List<String>? getRecipeTags(String recipe) {
     final tags = _recipeData[recipe]?['tags'];
     return tags != null ? List<String>.from(tags) : null;
   }
 
-  // Get full recipe details
   Map<String, dynamic>? getRecipeDetails(String recipe) {
     return _recipeData[recipe];
   }
 
-  // Function to check if a recipe is favorited (to be implemented with user data)
   bool isFavorite(String recipe) {
-    return false; // Placeholder - implement with actual user data
+    return false; // placeholder for sql
   }
-
-  // Function to toggle favorite status (to be implemented with user data)
   void toggleFavorite(String recipe) {
-    // Implement with actual user data storage
-  }
+    //placeholder for sql
+    }
 }
