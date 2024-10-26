@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:recipe_meal/groceryList.dart';
+import 'package:recipe_meal/profile.dart';
 import 'recipeList.dart';
 import 'mealPlanner.dart';
+import 'profile.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -13,7 +15,12 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.account_circle),
             onPressed: () {
-             
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
             },
           ),
         ],

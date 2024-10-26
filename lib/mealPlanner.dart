@@ -3,6 +3,8 @@ import 'services/recipe_services.dart';
 import 'recipeDetails.dart';
 
 class MealPlannerScreen extends StatefulWidget {
+  const MealPlannerScreen({super.key});
+
   @override
   _MealPlannerScreenState createState() => _MealPlannerScreenState();
 }
@@ -12,18 +14,18 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
   DateTime _selectedDate = DateTime.now();
   
   // Structure: {'2024-3-24': {'breakfast': 'Pancakes', 'lunch': 'Ham Sandwich', 'dinner': 'Pasta'}}
-  Map<String, Map<String, String>> _mealPlan = {};
+  final Map<String, Map<String, String>> _mealPlan = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meal Planner'),
+        title: const Text('Meal Planner'),
       ),
       body: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               border: Border(
@@ -36,7 +38,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.chevron_left),
+                      icon: const Icon(Icons.chevron_left),
                       onPressed: () {
                         setState(() {
                           _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
@@ -45,10 +47,10 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                     ),
                     Text(
                       '${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
-                      icon: Icon(Icons.chevron_right),
+                      icon: const Icon(Icons.chevron_right),
                       onPressed: () {
                         setState(() {
                           _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
@@ -57,7 +59,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _buildCalendarGrid(),
               ],
             ),
@@ -65,19 +67,19 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '${_selectedDate.day} ${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildMealTimeSection('Breakfast'),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildMealTimeSection('Lunch'),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildMealTimeSection('Dinner'),
                 ],
               ),
@@ -94,7 +96,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
 
     return Card(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -110,13 +112,13 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add),
+                  icon: const Icon(Icons.add),
                   onPressed: () => _showRecipeSelectionDialog(mealTime.toLowerCase()),
                   tooltip: 'Add $mealTime',
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             if (meal != null) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,12 +135,12 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                       },
                       child: Text(
                         meal,
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, size: 20),
+                    icon: const Icon(Icons.close, size: 20),
                     onPressed: () {
                       setState(() {
                         _mealPlan[dateKey]?.remove(mealTime.toLowerCase());
@@ -152,7 +154,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                 ],
               ),
             ] else
-              Text(
+              const Text(
                 'No meal planned',
                 style: TextStyle(
                   color: Colors.grey,
@@ -172,8 +174,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
 
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
@@ -184,7 +186,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           return Center(
             child: Text(
               ['M', 'T', 'W', 'T', 'F', 'S', 'S'][index],
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           );
         }
@@ -232,8 +234,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Select a Recipe'),
-          content: Container(
+          title: const Text('Select a Recipe'),
+          content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
               shrinkWrap: true,
@@ -257,7 +259,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
           ],
         );

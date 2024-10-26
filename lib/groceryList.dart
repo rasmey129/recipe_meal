@@ -2,23 +2,25 @@ import 'package:flutter/material.dart';
 import 'services/recipe_services.dart';
 
 class GroceryListScreen extends StatefulWidget {
+  const GroceryListScreen({super.key});
+
   @override
   _GroceryListScreenState createState() => _GroceryListScreenState();
 }
 
 class _GroceryListScreenState extends State<GroceryListScreen> {
   final RecipeService _recipeService = RecipeService();
-  Map<String, bool> _groceryItems = {};
-  List<String> _selectedRecipes = [];
+  final Map<String, bool> _groceryItems = {};
+  final List<String> _selectedRecipes = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Grocery List'),
+        title: const Text('Grocery List'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: _showAddRecipeDialog,
           ),
         ],
@@ -27,19 +29,19 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
         children: [
           if (_selectedRecipes.isNotEmpty) ...[
             Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               color: Colors.blue.shade50,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Recipes Added:',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     children: _selectedRecipes.map((recipe) {
@@ -54,12 +56,12 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
                 ],
               ),
             ),
-            Divider(height: 1),
+            const Divider(height: 1),
           ],
 
           Expanded(
             child: _groceryItems.isEmpty
-                ? Center(
+                ? const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -91,8 +93,8 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
       floatingActionButton: _groceryItems.isNotEmpty
           ? FloatingActionButton(
               onPressed: _clearCheckedItems,
-              child: Icon(Icons.cleaning_services),
               tooltip: 'Clear checked items',
+              child: Icon(Icons.cleaning_services),
             )
           : null,
     );
@@ -101,11 +103,11 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
   List<Widget> _buildGroceryCategories() {
     Map<String, List<MapEntry<String, bool>>> categorizedItems = {};
     
-    _groceryItems.entries.forEach((item) {
+    for (var item in _groceryItems.entries) {
       String category = _categorizeIngredient(item.key);
       categorizedItems.putIfAbsent(category, () => []);
       categorizedItems[category]!.add(item);
-    });
+    }
 
     List<Widget> categories = [];
     categorizedItems.forEach((category, items) {
@@ -114,7 +116,7 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 category,
                 style: TextStyle(
@@ -160,11 +162,11 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
             .toList();
 
         return AlertDialog(
-          title: Text('Add Recipe Ingredients'),
-          content: Container(
+          title: const Text('Add Recipe Ingredients'),
+          content: SizedBox(
             width: double.maxFinite,
             child: availableRecipes.isEmpty
-                ? Center(
+                ? const Center(
                     child: Text('All recipes have been added'),
                   )
                 : ListView.builder(
@@ -188,7 +190,7 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
           ],
         );
