@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/recipe_services.dart';
+import 'database_helper.dart';
 
 class GroceryListScreen extends StatefulWidget {
   const GroceryListScreen({super.key});
@@ -10,8 +11,133 @@ class GroceryListScreen extends StatefulWidget {
 
 class _GroceryListScreenState extends State<GroceryListScreen> {
   final RecipeService _recipeService = RecipeService();
+  final DatabaseHelper _db = DatabaseHelper();
   final Map<String, bool> _groceryItems = {};
   final List<String> _selectedRecipes = [];
+  int? _userId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final users = await _db.database.then((db) => db.query('users', limit: 1));
+      if (users.isNotEmpty) {
+        _userId = users.first['id'] as int;
+        await _loadGroceryList();
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadGroceryList() async {
+    if (_userId == null) return;
+
+    final groceryList = await _db.getGroceryList(_userId!);
+    
+    setState(() {
+      _groceryItems.clear();
+      for (var item in groceryList) {
+        _groceryItems[item['ingredient'] as String] = item['is_checked'] == 1;
+      }
+    });
+  }
+
+  Future<void> _addRecipeIngredients(String recipe) async {
+    if (_userId == null) return;
+
+    final recipeDetails = _recipeService.getRecipeDetails(recipe);
+    if (recipeDetails != null) {
+      setState(() {
+        _selectedRecipes.add(recipe);
+      });
+
+      // First, add all ingredients to the database
+      for (String ingredient in recipeDetails['ingredients']) {
+        if (!_groceryItems.containsKey(ingredient)) {
+          await _db.addToGroceryList(_userId!, ingredient);
+        }
+      }
+
+      // Then reload the grocery list to ensure consistency
+      await _loadGroceryList();
+    }
+  }
+
+  Future<void> _removeRecipe(String recipe) async {
+    if (_userId == null) return;
+
+    final recipeDetails = _recipeService.getRecipeDetails(recipe);
+    if (recipeDetails != null) {
+      setState(() {
+        _selectedRecipes.remove(recipe);
+      });
+
+      // Remove ingredients that aren't used in other selected recipes
+      for (String ingredient in recipeDetails['ingredients']) {
+        bool usedInOtherRecipes = false;
+        for (String otherRecipe in _selectedRecipes) {
+          final otherRecipeDetails = _recipeService.getRecipeDetails(otherRecipe);
+          if (otherRecipeDetails != null && 
+              otherRecipeDetails['ingredients'].contains(ingredient)) {
+            usedInOtherRecipes = true;
+            break;
+          }
+        }
+
+        if (!usedInOtherRecipes) {
+          await _db.removeFromGroceryList(_userId!, ingredient);
+        }
+      }
+
+      // Reload the grocery list to ensure consistency
+      await _loadGroceryList();
+    }
+  }
+
+  Future<void> _toggleGroceryItem(String ingredient) async {
+    if (_userId == null) return;
+
+    await _db.toggleGroceryItem(_userId!, ingredient);
+    await _loadGroceryList();
+  }
+
+  Future<void> _clearCheckedItems() async {
+    if (_userId == null) return;
+
+    // Get all checked items
+    final checkedItems = _groceryItems.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+
+    // Remove checked items from selected recipes if necessary
+    for (String recipe in List.from(_selectedRecipes)) {
+      final recipeDetails = _recipeService.getRecipeDetails(recipe);
+      if (recipeDetails != null) {
+        bool allIngredientsChecked = recipeDetails['ingredients']
+            .every((ingredient) => checkedItems.contains(ingredient));
+        
+        if (allIngredientsChecked) {
+          _selectedRecipes.remove(recipe);
+        }
+      }
+    }
+
+    await _db.clearCheckedGroceryItems(_userId!);
+    await _loadGroceryList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,76 +151,78 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_selectedRecipes.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.blue.shade50,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Recipes Added:',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: _selectedRecipes.map((recipe) {
-                      return Chip(
-                        label: Text(recipe),
-                        onDeleted: () {
-                          _removeRecipe(recipe);
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-          ],
-
-          Expanded(
-            child: _groceryItems.isEmpty
-                ? const Center(
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                if (_selectedRecipes.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.blue.shade50,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Your grocery list is empty\nTap + to add recipes',
-                          textAlign: TextAlign.center,
+                        const Text(
+                          'Recipes Added:',
                           style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: _selectedRecipes.map((recipe) {
+                            return Chip(
+                              label: Text(recipe),
+                              onDeleted: () {
+                                _removeRecipe(recipe);
+                              },
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),
-                  )
-                : ListView(
-                    children: [
-                      ..._buildGroceryCategories(),
-                    ],
                   ),
-          ),
-        ],
-      ),
+                  const Divider(height: 1),
+                ],
+
+                Expanded(
+                  child: _groceryItems.isEmpty
+                      ? const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Your grocery list is empty\nTap + to add recipes',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView(
+                          children: [
+                            ..._buildGroceryCategories(),
+                          ],
+                        ),
+                ),
+              ],
+            ),
       floatingActionButton: _groceryItems.isNotEmpty
           ? FloatingActionButton(
               onPressed: _clearCheckedItems,
               tooltip: 'Clear checked items',
-              child: Icon(Icons.cleaning_services),
+              child: const Icon(Icons.cleaning_services),
             )
           : null,
     );
@@ -111,25 +239,27 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
 
     List<Widget> categories = [];
     categorizedItems.forEach((category, items) {
-      categories.add(
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                category,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade700,
+      if (items.isNotEmpty) {
+        categories.add(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
+                  ),
                 ),
               ),
-            ),
-            ...items.map((item) => _buildGroceryItem(item.key, item.value)),
-          ],
-        ),
-      );
+              ...items.map((item) => _buildGroceryItem(item.key, item.value)),
+            ],
+          ),
+        );
+      }
     });
     return categories;
   }
@@ -145,9 +275,7 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
       ),
       value: isChecked,
       onChanged: (bool? value) {
-        setState(() {
-          _groceryItems[item] = value ?? false;
-        });
+        _toggleGroceryItem(item);
       },
       controlAffinity: ListTileControlAffinity.leading,
     );
@@ -179,8 +307,8 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
                       return ListTile(
                         title: Text(recipe),
                         subtitle: Text('${recipeDetails?["ingredients"].length ?? 0} ingredients'),
-                        onTap: () {
-                          _addRecipeIngredients(recipe);
+                        onTap: () async {
+                          await _addRecipeIngredients(recipe);
                           Navigator.pop(context);
                         },
                       );
@@ -196,36 +324,6 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
         );
       },
     );
-  }
-
-  void _addRecipeIngredients(String recipe) {
-    final recipeDetails = _recipeService.getRecipeDetails(recipe);
-    if (recipeDetails != null) {
-      setState(() {
-        _selectedRecipes.add(recipe);
-        for (String ingredient in recipeDetails['ingredients']) {
-          _groceryItems.putIfAbsent(ingredient, () => false);
-        }
-      });
-    }
-  }
-
-  void _removeRecipe(String recipe) {
-    final recipeDetails = _recipeService.getRecipeDetails(recipe);
-    if (recipeDetails != null) {
-      setState(() {
-        _selectedRecipes.remove(recipe);
-        for (String ingredient in recipeDetails['ingredients']) {
-          _groceryItems.remove(ingredient);
-        }
-      });
-    }
-  }
-
-  void _clearCheckedItems() {
-    setState(() {
-      _groceryItems.removeWhere((key, value) => value);
-    });
   }
 
   String _categorizeIngredient(String ingredient) {

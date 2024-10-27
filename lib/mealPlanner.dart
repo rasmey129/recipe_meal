@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/recipe_services.dart';
 import 'recipeDetails.dart';
+import 'database_helper.dart';
 
 class MealPlannerScreen extends StatefulWidget {
   const MealPlannerScreen({super.key});
@@ -11,10 +12,77 @@ class MealPlannerScreen extends StatefulWidget {
 
 class _MealPlannerScreenState extends State<MealPlannerScreen> {
   final RecipeService _recipeService = RecipeService();
+  final DatabaseHelper _db = DatabaseHelper();
   DateTime _selectedDate = DateTime.now();
-  
-  // Structure: {'2024-3-24': {'breakfast': 'Pancakes', 'lunch': 'Ham Sandwich', 'dinner': 'Pasta'}}
-  final Map<String, Map<String, String>> _mealPlan = {};
+  Map<String, Map<String, String>> _mealPlan = {};
+  int? _userId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get the first user (should be replaced with proper user session management)
+      final users = await _db.database.then((db) => db.query('users', limit: 1));
+      if (users.isNotEmpty) {
+        _userId = users.first['id'] as int;
+        await _loadMealPlans();
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMealPlans() async {
+    if (_userId == null) return;
+
+    final startDate = DateTime(_selectedDate.year, _selectedDate.month, 1)
+        .toIso8601String()
+        .split('T')
+        .first;
+    final endDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 0)
+        .toIso8601String()
+        .split('T')
+        .first;
+
+    final plans = await _db.getMealPlans(_userId!, startDate, endDate);
+    setState(() {
+      _mealPlan = plans;
+    });
+  }
+
+  Future<void> _saveMealPlan(String dateKey, String mealTime, String recipe) async {
+    if (_userId == null) return;
+
+    await _db.saveMealPlan(
+      _userId!,
+      dateKey,
+      mealTime,
+      recipe,
+    );
+    await _loadMealPlans();
+  }
+
+  Future<void> _removeMealPlan(String dateKey, String mealTime) async {
+    if (_userId == null) return;
+
+    await _db.removeMealPlan(
+      _userId!,
+      dateKey,
+      mealTime,
+    );
+    await _loadMealPlans();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,71 +90,75 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
       appBar: AppBar(
         title: const Text('Meal Planner'),
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              border: Border(
-                bottom: BorderSide(color: Colors.blue.shade200),
-              ),
-            ),
-            child: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left),
-                      onPressed: () {
-                        setState(() {
-                          _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
-                        });
-                      },
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.blue.shade200),
                     ),
-                    Text(
-                      '${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () {
-                        setState(() {
-                          _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
-                        });
-                      },
-                    ),
-                  ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left),
+                            onPressed: () async {
+                              setState(() {
+                                _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
+                              });
+                              await _loadMealPlans();
+                            },
+                          ),
+                          Text(
+                            '${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: () async {
+                              setState(() {
+                                _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
+                              });
+                              await _loadMealPlans();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      _buildCalendarGrid(),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 10),
-                _buildCalendarGrid(),
+                
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_selectedDate.day} ${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildMealTimeSection('Breakfast'),
+                        const SizedBox(height: 16),
+                        _buildMealTimeSection('Lunch'),
+                        const SizedBox(height: 16),
+                        _buildMealTimeSection('Dinner'),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${_selectedDate.day} ${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildMealTimeSection('Breakfast'),
-                  const SizedBox(height: 16),
-                  _buildMealTimeSection('Lunch'),
-                  const SizedBox(height: 16),
-                  _buildMealTimeSection('Dinner'),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -141,13 +213,8 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 20),
-                    onPressed: () {
-                      setState(() {
-                        _mealPlan[dateKey]?.remove(mealTime.toLowerCase());
-                        if (_mealPlan[dateKey]?.isEmpty ?? false) {
-                          _mealPlan.remove(dateKey);
-                        }
-                      });
+                    onPressed: () async {
+                      await _removeMealPlan(dateKey, mealTime.toLowerCase());
                     },
                     tooltip: 'Remove $mealTime',
                   ),
@@ -244,12 +311,9 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                 final recipe = _recipeService.getAllRecipes()[index];
                 return ListTile(
                   title: Text(recipe),
-                  onTap: () {
-                    setState(() {
-                      final dateKey = '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}';
-                      _mealPlan.putIfAbsent(dateKey, () => {});
-                      _mealPlan[dateKey]![mealTime] = recipe;
-                    });
+                  onTap: () async {
+                    final dateKey = '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}';
+                    await _saveMealPlan(dateKey, mealTime, recipe);
                     Navigator.pop(context);
                   },
                 );

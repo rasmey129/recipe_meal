@@ -1,110 +1,245 @@
 import 'package:flutter/material.dart';
-import 'package:recipe_meal/groceryList.dart';
-import 'package:recipe_meal/profile.dart';
+import 'groceryList.dart';
+import 'profile.dart';
 import 'recipeList.dart';
 import 'mealPlanner.dart';
-import 'profile.dart';
+import 'database_helper.dart';
+import 'login.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final DatabaseHelper _db = DatabaseHelper();
+  String _username = 'User';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final users = await _db.database.then((db) => db.query('users', limit: 1));
+      if (users.isNotEmpty) {
+        setState(() {
+          _username = users.first['name'] as String;
+        });
+      } else {
+        _navigateToLogin();
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      _navigateToLogin();
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _navigateToLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
+  void _logout() async {
+    await _db.database.then((db) => db.close());
+    _navigateToLogin();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Meal Planner'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.account_circle),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.blue.shade200,
+                    Colors.blue.shade50,
+                  ],
                 ),
-              );
-            },
-          ),
-        ],
+              ),
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Hello, $_username!',
+                                style: const TextStyle(
+                                  fontSize: 28.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'What would you like to plan today?',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.account_circle, size: 30),
+                                color: Colors.blue,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProfileScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.logout, size: 30),
+                                color: Colors.blue,
+                                onPressed: _logout,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(24.0),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildMenuCard(
+                              icon: Icons.book,
+                              title: 'Recipes',
+                              subtitle: 'Browse and discover new recipes',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => RecipeListScreen()),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildMenuCard(
+                              icon: Icons.calendar_today,
+                              title: 'Meal Planner',
+                              subtitle: 'Plan your weekly meals',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => MealPlannerScreen()),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildMenuCard(
+                              icon: Icons.shopping_cart,
+                              title: 'Grocery List',
+                              subtitle: 'Manage your shopping list',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => GroceryListScreen()),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildMenuCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(height: 20),
-            Text(
-              'Welcome back, username!',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: Colors.blue,
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'What would you like to plan today?',
-              style: TextStyle(
-                fontSize: 18.0,
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 30),
-            Center(
-              child: Column(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RecipeListScreen(),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.book),
-                    label: Text('Recipes'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                      backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MealPlannerScreen(),
-                        ),
-                      ); },
-                    icon: Icon(Icons.calendar_today),
-                    label: Text('Meal Planner'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                      backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GroceryListScreen(),
-                        ),
-                      ); 
-                    },
-                    icon: Icon(Icons.shopping_cart),
-                    label: Text('Grocery List'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                      backgroundColor: Colors.blue,
-                      textStyle: TextStyle(fontSize: 20, color: Colors.white), 
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey.shade400,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

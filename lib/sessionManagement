@@ -1,0 +1,35 @@
+import 'package:shared_preferences.dart';
+
+class SessionManager {
+  static const String KEY_USER_ID = 'user_id';
+  static const String KEY_USER_NAME = 'user_name';
+  static const String KEY_USER_EMAIL = 'user_email';
+  static const String KEY_USER_AGE = 'user_age';
+
+  static Future<void> saveUserSession(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(KEY_USER_ID, userData['id']);
+    await prefs.setString(KEY_USER_NAME, userData['name']);
+    await prefs.setString(KEY_USER_EMAIL, userData['email']);
+    await prefs.setInt(KEY_USER_AGE, userData['age']);
+  }
+
+  static Future<Map<String, dynamic>?> getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt(KEY_USER_ID);
+    if (userId == null) return null;
+
+    return {
+      'id': userId,
+      'name': prefs.getString(KEY_USER_NAME) ?? '',
+      'email': prefs.getString(KEY_USER_EMAIL) ?? '',
+      'age': prefs.getInt(KEY_USER_AGE) ?? 0,
+    };
+  }
+
+  // Clear user session
+  static Future<void> clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+}
