@@ -35,7 +35,6 @@ class DatabaseHelper {
           )
         ''');
 
-        // Create meal plans table with indexes
         await db.execute('''
           CREATE TABLE meal_plans(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +48,6 @@ class DatabaseHelper {
         ''');
         await db.execute('CREATE INDEX idx_meal_plans_user_date ON meal_plans(user_id, date)');
 
-        // Create favorites table with indexes
         await db.execute('''
           CREATE TABLE favorites(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +59,6 @@ class DatabaseHelper {
         ''');
         await db.execute('CREATE INDEX idx_favorites_user ON favorites(user_id)');
 
-        // Create grocery list table with indexes
         await db.execute('''
           CREATE TABLE grocery_lists(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,7 +73,6 @@ class DatabaseHelper {
     );
   }
 
-  // User Methods
   Future<void> insertUser(String name, int age, String email, String password) async {
     final db = await database;
     await db.insert(
@@ -109,7 +105,6 @@ class DatabaseHelper {
     return null;
   }
 
-  // Meal Plan Methods
   Future<void> saveMealPlan(int userId, String date, String mealType, String recipeName) async {
     final db = await database;
     await db.insert(
@@ -157,7 +152,6 @@ class DatabaseHelper {
     return mealPlans;
   }
 
-  // Grocery List Methods
   Future<void> addToGroceryList(int userId, String ingredient) async {
     final db = await database;
     await db.insert(
@@ -208,7 +202,6 @@ class DatabaseHelper {
     );
   }
 
-  // Favorite Methods
   Future<void> toggleFavoriteRecipe(int userId, String recipeName) async {
     final db = await database;
     final List<Map<String, dynamic>> existing = await db.query(
@@ -251,7 +244,6 @@ class DatabaseHelper {
     return maps.isNotEmpty;
   }
 
-  // Utility Methods
   Future<void> clearUserData(int userId) async {
     final db = await database;
     await db.transaction((txn) async {

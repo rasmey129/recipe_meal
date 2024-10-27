@@ -122,10 +122,5 @@ class RecipeService {
     return _recipeData[recipe];
   }
 
-  bool isFavorite(String recipe) {
-    return false; // placeholder for sql
-  }
-  void toggleFavorite(String recipe) {
-    //placeholder for sql
-    }
+ 
 }

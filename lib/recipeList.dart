@@ -36,7 +36,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
   }
 
   Future<void> _loadUserAndFavorites() async {
-    // Get the first user (this should be replaced with proper user session management)
+    
     final users = await _db.database.then((db) => db.query('users', limit: 1));
     if (users.isNotEmpty) {
       userId = users.first['id'] as int;

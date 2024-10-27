@@ -30,7 +30,6 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
     });
 
     try {
-      // Get the first user (should be replaced with proper user session management)
       final users = await _db.database.then((db) => db.query('users', limit: 1));
       if (users.isNotEmpty) {
         _userId = users.first['id'] as int;
