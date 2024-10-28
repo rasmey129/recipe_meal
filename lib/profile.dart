@@ -32,7 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     
     try {
       final db = await _databaseHelper.database;
-      // Get the first user's data (we can enhance this later with proper user sessions)
       final List<Map<String, dynamic>> results = await db.query('users', limit: 1);
 
       if (results.isNotEmpty) {
@@ -79,7 +78,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    // Add any cleanup needed here
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -157,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: ElevatedButton.icon(
                             onPressed: _logout,
                             icon: const Icon(Icons.logout),
-                            label: const Text('Logout'),
+                            label: const Text('Logout' ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               padding: const EdgeInsets.symmetric(

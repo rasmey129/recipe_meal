@@ -185,7 +185,7 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () => _showRecipeSelectionDialog(mealTime.toLowerCase()),
-                  tooltip: 'Add $mealTime',
+                    tooltip: 'Add $mealTime',
                 ),
               ],
             ),

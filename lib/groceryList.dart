@@ -63,14 +63,12 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
         _selectedRecipes.add(recipe);
       });
 
-      // First, add all ingredients to the database
       for (String ingredient in recipeDetails['ingredients']) {
         if (!_groceryItems.containsKey(ingredient)) {
           await _db.addToGroceryList(_userId!, ingredient);
         }
       }
 
-      // Then reload the grocery list to ensure consistency
       await _loadGroceryList();
     }
   }
@@ -84,7 +82,6 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
         _selectedRecipes.remove(recipe);
       });
 
-      // Remove ingredients that aren't used in other selected recipes
       for (String ingredient in recipeDetails['ingredients']) {
         bool usedInOtherRecipes = false;
         for (String otherRecipe in _selectedRecipes) {
@@ -101,7 +98,6 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
         }
       }
 
-      // Reload the grocery list to ensure consistency
       await _loadGroceryList();
     }
   }
@@ -116,13 +112,11 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
   Future<void> _clearCheckedItems() async {
     if (_userId == null) return;
 
-    // Get all checked items
     final checkedItems = _groceryItems.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();
 
-    // Remove checked items from selected recipes if necessary
     for (String recipe in List.from(_selectedRecipes)) {
       final recipeDetails = _recipeService.getRecipeDetails(recipe);
       if (recipeDetails != null) {

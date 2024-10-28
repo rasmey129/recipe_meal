@@ -21,10 +21,8 @@ class DatabaseHelper {
       path,
       version: 1,
       onCreate: (db, version) async {
-        // Enable foreign key support
         await db.execute('PRAGMA foreign_keys = ON');
 
-        // Create users table
         await db.execute('''
           CREATE TABLE users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
