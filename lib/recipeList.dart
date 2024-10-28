@@ -36,7 +36,6 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
   }
 
   Future<void> _loadUserAndFavorites() async {
-    
     final users = await _db.database.then((db) => db.query('users', limit: 1));
     if (users.isNotEmpty) {
       userId = users.first['id'] as int;
@@ -90,7 +89,6 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -162,7 +160,7 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                     itemCount: filteredRecipes.length,
                     itemBuilder: (context, index) {
                       final recipe = filteredRecipes[index];
-                      final imageUrl = recipeService.getRecipeImageUrl(recipe);
+                      final imagePath = recipeService.getRecipeImagePath(recipe);
                       final tags = recipeService.getRecipeTags(recipe) ?? [];
                       final isFavorite = favorites[recipe] ?? false;
 
@@ -174,9 +172,9 @@ class _RecipeListScreenState extends State<RecipeListScreen> {
                             ListTile(
                               leading: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: imageUrl != null
-                                    ? Image.network(
-                                        imageUrl,
+                                child: imagePath != null
+                                    ? Image.asset(
+                                        imagePath,
                                         width: 100,
                                         height: 100,
                                         fit: BoxFit.cover,

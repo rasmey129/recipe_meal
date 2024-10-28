@@ -3,8 +3,10 @@ class RecipeService {
   final Map<String, Map<String, dynamic>> _recipeData = {
     'Classic Pancakes': {
       'tags': ['Breakfast', 'Quick Meals', 'Vegetarian'],
-      'image': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445',
+      'image': 'assets/classic_pancakes.jpg',
       'description': 'Fluffy, golden pancakes perfect for breakfast',
+      'cookTime': '20 mins',
+      'difficulty': 'Easy',
       'ingredients': [
         '1 1/2 cups all-purpose flour',
         '3 1/2 teaspoons baking powder',
@@ -24,8 +26,10 @@ class RecipeService {
     },
     'Chicken Caesar Salad': {
       'tags': ['Lunch', 'Quick Meals'],
-      'image': 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9',
+      'image': 'assets/chicken_caesar_salad.jpg',
       'description': 'Fresh and crispy Caesar salad with grilled chicken',
+      'cookTime': '15 mins',
+      'difficulty': 'Easy',
       'ingredients': [
         'Romaine lettuce',
         'Grilled chicken breast',
@@ -44,8 +48,10 @@ class RecipeService {
     },
     'Vegetarian Pasta': {
       'tags': ['Dinner', 'Vegetarian'],
-      'image': 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601',
+      'image': 'assets/vegetarian_pasta.jpg',
       'description': 'Delicious pasta with fresh vegetables',
+      'cookTime': '25 mins',
+      'difficulty': 'Medium',
       'ingredients': [
         'Spaghetti',
         'Mixed vegetables',
@@ -64,8 +70,10 @@ class RecipeService {
     },
     'Chocolate Chip Cookies': {
       'tags': ['Dessert', 'Vegetarian'],
-      'image': 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e',
+      'image': 'assets/chocolate_chip_cookies.jpg',
       'description': 'Classic homemade chocolate chip cookies',
+      'cookTime': '30 mins',
+      'difficulty': 'Medium',
       'ingredients': [
         'Flour',
         'Butter',
@@ -85,8 +93,10 @@ class RecipeService {
     },
     'Vegan Buddha Bowl': {
       'tags': ['Lunch', 'Dinner', 'Vegan', 'Gluten-Free'],
-      'image': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd',
+      'image': 'assets/vegan_buddha_bowl.jpg',
       'description': 'Nutritious and colorful vegan buddha bowl',
+      'cookTime': '35 mins',
+      'difficulty': 'Medium',
       'ingredients': [
         'Quinoa',
         'Roasted chickpeas',
@@ -95,7 +105,7 @@ class RecipeService {
         'Avocado',
         'Tahini dressing'
       ],
-      'instructions': [
+    'instructions': [
         'Cook quinoa',
         'Roast chickpeas and sweet potato',
         'Massage kale with olive oil',
@@ -109,7 +119,7 @@ class RecipeService {
     return _recipeData.keys.toList();
   }
 
-  String? getRecipeImageUrl(String recipe) {
+  String? getRecipeImagePath(String recipe) {
     return _recipeData[recipe]?['image'] as String?;
   }
 
@@ -122,5 +132,11 @@ class RecipeService {
     return _recipeData[recipe];
   }
 
- 
+  String? getRecipeCookTime(String recipe) {
+    return _recipeData[recipe]?['cookTime'] as String?;
+  }
+
+  String? getRecipeDifficulty(String recipe) {
+    return _recipeData[recipe]?['difficulty'] as String?;
+  }
 }
